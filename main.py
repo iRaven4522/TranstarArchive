@@ -2,16 +2,17 @@ import logging
 import os
 import wget
 import time
-import datetime
+import sys
 import requests
 import csv
 import threading
+
 
 # TranstarArchive Main PY
 # author: iRaven (https://iravenhome.net)
 # Started 9/6/22.
 
-#version = "0.1"
+#version = "2021.9.8"
 
 # Configure logging
 logging.basicConfig(filename="TransArchive.log",
@@ -23,6 +24,7 @@ logging.getLogger("requests").setLevel(logging.WARNING)
 
 #define local vars
 
+arglist = sys.argv[1:]
 #time
 initcurtime = time.localtime()
 # currtime = (f'{initcurtime.tm_hour}-{initcurtime.tm_min}-{initcurtime.tm_sec}')
@@ -45,8 +47,12 @@ vftxt.close()
 
 ######## Core functions
 # initialize folder
-def initFolder():
-    log.info(f'TranstarArchive was started')
+def initFolder(startmode):
+    if startmode == "script":
+        log.info(f'TranstarArchive was likely started non-standalone with a script or from a command line')
+    else:
+        log.info(f'TranstarArchive was started')
+
     if not os.path.exists("archive/"):
         log.info("archive folder doesn't exist. creating it")
         os.makedirs("archive/")
@@ -86,7 +92,7 @@ def imageDownload(url):
     #     for vals in invlog:
     #         invlog.write(f'invalid feeds found at archive {curdate} at {curtime}:\n{vals}\n#### END END END ####\n either transstar is having issues or has reconfigured feed numbers, open an issue in the repo: https://github.com/iraven4522/TranstarArchive\n')
 
-# loops the download function every like 3 or so mins
+# loops the download function every like 3 or so mins (may not work?)
 def imgDownloadLoop(secs):
     log.info(f'delay loop was called for {secs}, starting now')
     threading.Timer(f'{secs}.0', imgDownloadLoop).start()
@@ -106,13 +112,27 @@ def MainMenu():
         menuin1 = input("If you want to continue please type the phrase \"startrans\" (without quotes) or type no: ")
         if menuin1 == "startrans":
             imageDownload(cctvurl)
-            log.info("returned to menu for delay")
-            imgDownloadLoop(195)
+            # log.info("returned to menu for delay")
+            # imgDownloadLoop(195)
         else:
             exit()
     else:
         exit()
 
-# Run the shit (finally)
-initFolder() # check folder and csv file first (send log start message)
-MainMenu()
+# Run the shit (finally) -- phased out due to arguments
+# initFolder() # check folder and csv file first (send log start message)
+# MainMenu()
+
+# Arguments
+for arg in arglist:
+    if arg in ("-archive"):
+        # print("Archive was passed") # debugging
+        initFolder("script")
+        imageDownload(cctvurl)
+    elif arg in ("-testarg"): # debugging, left to test arguments
+        print("test arg was passed")
+        log.debug("Test arg was passed -- not running")
+    else: # no arguments are passed, just running the file from a folder (which is oki)
+        # log.debug("no args were passed!")
+        initFolder("normal")
+        MainMenu()

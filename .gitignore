@@ -1,3 +1,4 @@
 CCTVCrawl*
 devscrape*
-*.log*
+*.log
+__pycache__
