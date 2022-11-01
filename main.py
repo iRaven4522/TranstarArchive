@@ -79,7 +79,9 @@ def imageDownload(url):
             csvvalid = [curtime,feed,'Success']
             print(f'Valid camera feed is being archived: {feed}\n')
             log.info(f'Valid camera feed is being archived: {feed}')
-            wget.download(rq.url,f'archive/{curdate}/{feed}_{curtime}.jpg')
+            # wget.download(rq.url,f'archive/{curdate}/{feed}_{curtime}.jpg')
+            # new method - using requests module only (10.20.22)
+            open(f'archive/{curdate}/{feed}_{curtime}.jpg', 'wb').write(rq.content) # ^
             with open(csvfile, 'a') as listfile:
                 csvwrite = csv.writer(listfile)
                 csvwrite.writerow(csvvalid)
