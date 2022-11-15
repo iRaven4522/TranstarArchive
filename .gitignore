@@ -2,4 +2,12 @@ CCTVCrawl*
 devscrape*
 OLD_devscrape*
 *.log
-__pycache__
+TransArchive*.csv
+
+# ide/py cache/settings files
+__pycache__/
+.vscode/
+
+# do not sync archive feeds prod folder
+archive/
+
