@@ -15,7 +15,7 @@ import threading
 #version = "2022.9.28"
 
 # Configure logging
-logging.basicConfig(filename="TransArchive.log",
+logging.basicConfig(filename="TranstarArchive.log",
                     format='%(asctime)s %(levelname)s %(message)s',
                     filemode='a')
 log = logging.getLogger()
