@@ -28,7 +28,7 @@ curdate = (f'{initcurtime.tm_year}-{initcurtime.tm_mon}-{initcurtime.tm_mday}')
 global imagespath
 global dateinput
 
-# valid feeds list to iiteriate thru
+# valid feeds list to iterate thru
 # TODO: make this user supplied for older folders maybe
 vftxt = open("valid_feed_list.txt", "r")
 vfdata = vftxt.read()
@@ -54,6 +54,7 @@ def gifCombine(path, date):
         for filenames in sorted(os.listdir(joinedpath)): # for each file in provided path dir
             if filenames.startswith(feednum): # if a file starts with the current feednum
                 # length check!! (this bit me in the ass)
+                # print(len(filenames.split('_')[0])) # debugging
                 if len(filenames.split('_')[0]) == len(feednum):
                     log.info(f"found {filenames} that starts with {feednum}")
                     print(f"found {filenames} that starts with {feednum}")
@@ -61,6 +62,11 @@ def gifCombine(path, date):
                         log.debug(f'found {filenames} already in {feednum} filename list so NOT adding to list AGAIN')
                     else:
                         # log.info("") # not sure what i was doing here
+                        #if os.path.isfile(f'{joinedpath}/gifs/{feednum}.gif'): # check if a file exists so we don't waste time with imageio reading contents
+                            # (TODO: may improve if ran earlier and new feeds are added?) (this is that LOL) (nope this doesn't really work)
+                            # log.info(f"gif file for {feednum} already exists at \'{joinedpath}/gifs/{feednum}.gif\', not creating again and moving on...")
+                            # print(f"gif file for {feednum} already exists at \'{joinedpath}/gifs/{feednum}.gif\', not creating again and moving on...")
+                        #else:
                         imagenames.append(filenames) # append found file names to list for adding to imageio reader appending list
                 else:
                     log.debug(f'found {filenames} that starts with {feednum} HOWEVER isn\'t right length')
@@ -70,16 +76,26 @@ def gifCombine(path, date):
         for files in imagenames:
             log.info(f"applying image {files} for {feednum} in {joinedpath}")
             print(f"applying image {files} for {feednum} in {joinedpath}")
-            images.append(imageio.imread(f'{joinedpath}/{files}')) # append whatever image found that starts with current feednum to list
-            #TODO: this gives a deprecated error about imread because of course it does.
+            try:
+                images.append(imageio.imread(f'{joinedpath}/{files}')) # append whatever image found that starts with current feednum to list
+                #TODO: this gives a deprecated error about imread because of course it does.
+            except ValueError:
+                log.debug(f"a corrupted file has been detected! {images}")
+                log.error(f"a ValueError has occured on {feednum}, maybe due to a corrupted .jpg file that may have been appended.")
+                log.error(f"{feednum} ValueError: {joinedpath}/gifs/{feednum}.gif will not be created and ignored.")
+                images.remove(files) # maybe this will remove only the file that got fucked up?
 
         # log.debug(f"all images found to be saved: \n{images}") -- this generates way too much bullshit
         log.debug(f" all images to be saved in a gif: \n{imagenames}")
         log.info(f"saving {feednum} gif file with all images collected of it on {date}...")
         print(f"saving {feednum} gif file with all images collected of it on {date}...")
-        imageio.mimsave(f'{joinedpath}/gifs/{feednum}.gif', images, duration=0.2) # save a gif image for each feednum in date folder provided with .2 secs between each frame
-        log.info("gif should be saved and created successfully. moving on to next itieration...")
-        print("gif should be saved and created successfully. moving on to next itieration...")
+        log.debug(f"checking if gif for {feednum} already exists")
+        if os.path.isfile(f'{joinedpath}/gifs/{feednum}.gif'): # check if a file exists so we don't create it again (TODO: may improve if ran earlier and new feeds are added?)
+            log.info(f"gif file for {feednum} already exists at \'{joinedpath}/gifs/{feednum}.gif\', not creating again and moving on...")
+        else: # if file doesn't exist already, make it
+            imageio.mimsave(f'{joinedpath}/gifs/{feednum}.gif', images, duration=0.2) # save a gif image for each feednum in date folder provided with .2 secs between each frame
+            log.info("gif should be saved and created successfully. moving on to next itieration...")
+            print("gif should be saved and created successfully. moving on to next itieration...")
         
 
 
@@ -120,7 +136,7 @@ def MainMenu():
     log.debug(f"getting dir listing of {imagespath} for date selection")
     print("here is a listing of the directories in the path you provided earlier.")
     print(os.listdir(imagespath))
-    menuin3 = input("type in the folder with the date you want gifCombine to run in:  ")
+    menuin3 = input("type in the folder with the date you want gifCombine to iterate through:  ")
     # TODO: formatting error correction
     dateinput = menuin3 # just declare it here
 
